@@ -2,18 +2,26 @@
 import streamlit as st
 import pickle
 import numpy as np
+from pathlib import Path
 
-# Load the trained model
-with open("linear_regression_model.pkl", "rb") as file:
-    model = pickle.load(file)
-
-# Page configuration
-st.set_page_config(page_title="Marks Predictor", page_icon="📚")
+st.set_page_config(page_title="Student Marks Prediction")
 
 st.title("Student Marks Prediction")
-st.write("Predict your marks based on study hours.")
 
-# User input
+# Find the model in the same directory as app.py
+MODEL_PATH = Path(__file__).parent / "linear_regression_model.pkl"
+
+if not MODEL_PATH.exists():
+    st.error("Model file not found. Please generate and upload linear_regression_model.pkl.")
+    st.stop()
+
+try:
+    with open(MODEL_PATH, "rb") as file:
+        model = pickle.load(file)
+except Exception as e:
+    st.error(f"Unable to load model: {e}")
+    st.stop()
+
 hours = st.number_input(
     "Enter study hours:",
     min_value=0.0,
@@ -22,7 +30,6 @@ hours = st.number_input(
     step=0.5
 )
 
-# Prediction button
 if st.button("Predict"):
     prediction = model.predict(np.array([[hours]]))[0]
     st.success(f"Predicted Marks: {prediction:.2f}")
